@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f6f3">
+<title>WeekLock</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234a7c72'/><rect x='8' y='9' width='16' height='3' rx='1.5' fill='%23fff'/><rect x='8' y='15' width='16' height='3' rx='1.5' fill='%23fff' opacity='.7'/><rect x='8' y='21' width='9' height='3' rx='1.5' fill='%23fff' opacity='.45'/></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>WeekLock</h1>
+  <button type="button" class="linkish" id="data-btn">Data</button>
+</header>
+
+<main id="main">
+
+  <!-- ------------------------------------------------------------- LOG -->
+  <section class="view" id="view-log">
+    <div class="daybar">
+      <button type="button" class="step" id="day-prev" aria-label="Previous day">‹</button>
+      <div class="daybar-label">
+        <strong id="day-label">Today</strong>
+        <span id="day-sub" class="muted"></span>
+      </div>
+      <button type="button" class="step" id="day-next" aria-label="Next day">›</button>
+    </div>
+
+    <div class="cat-grid" id="cat-grid"></div>
+    <div class="panel" id="log-panel" hidden></div>
+
+    <h2 class="section-head">Logged <span class="muted" id="log-day-word">today</span></h2>
+    <ul class="list" id="day-logs"></ul>
+  </section>
+
+  <!-- ------------------------------------------------------------ PLAN -->
+  <section class="view" id="view-plan" hidden>
+    <div class="daybar">
+      <button type="button" class="step" id="week-prev" aria-label="Previous week">‹</button>
+      <div class="daybar-label">
+        <strong id="week-rel">This week</strong>
+        <span id="week-label" class="muted"></span>
+      </div>
+      <button type="button" class="step" id="week-next" aria-label="Next week">›</button>
+    </div>
+
+    <div id="carry-box"></div>
+
+    <section class="card">
+      <h2>Must-move this week</h2>
+      <p class="hint" id="must-hint">Three is usually enough.</p>
+      <ul class="list" id="must-list"></ul>
+      <form class="add-row" id="must-form">
+        <input type="text" id="must-input" placeholder="One thing that has to move" autocomplete="off">
+        <button type="submit">Add</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Scheduled slots</h2>
+      <p class="hint">Church, study groups, body doubling, meetups — anything with a time on it.</p>
+      <ul class="list" id="slot-list"></ul>
+      <button type="button" class="ghost wide" id="slot-toggle">Add a slot</button>
+      <form class="stack" id="slot-form" hidden>
+        <input type="text" id="slot-name" placeholder="Name (FIA Church, Tuesday study group…)" autocomplete="off">
+        <div class="row">
+          <select id="slot-kind"></select>
+          <select id="slot-day"></select>
+          <input type="time" id="slot-time">
+        </div>
+        <input type="text" id="slot-korean" placeholder="Korean-practice note (optional)" autocomplete="off">
+        <div class="row end">
+          <button type="button" class="ghost" id="slot-cancel">Cancel</button>
+          <button type="submit">Add slot</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Life admin</h2>
+      <p class="hint">Pull one or two into the week. The rest can wait without nagging.</p>
+      <ul class="list" id="promoted-list"></ul>
+      <details id="backlog-details">
+        <summary>Open tasks <span class="muted" id="backlog-count"></span></summary>
+        <ul class="list" id="backlog-list"></ul>
+        <form class="add-row" id="task-form">
+          <input type="text" id="task-input" placeholder="Bike service, try the café on Yeonmujang-gil…" autocomplete="off">
+          <button type="submit">Add</button>
+        </form>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>Parking lot</h2>
+      <p class="hint">Kept, not scheduled. Nothing here counts towards anything.</p>
+      <ul class="list" id="parking-list"></ul>
+      <form class="add-row" id="parking-form">
+        <input type="text" id="parking-input" placeholder="An idea for later" autocomplete="off">
+        <button type="submit">Park</button>
+      </form>
+    </section>
+  </section>
+
+  <!-- ---------------------------------------------------------- REVIEW -->
+  <section class="view" id="view-review" hidden>
+    <div class="daybar">
+      <button type="button" class="step" id="rev-prev" aria-label="Previous week">‹</button>
+      <div class="daybar-label">
+        <strong id="rev-rel">This week</strong>
+        <span id="rev-label" class="muted"></span>
+      </div>
+      <button type="button" class="step" id="rev-next" aria-label="Next week">›</button>
+    </div>
+
+    <section class="card">
+      <h2>Planned vs logged</h2>
+      <ul class="kv" id="rev-planned"></ul>
+    </section>
+
+    <section class="card">
+      <h2>This week, logged</h2>
+      <ul class="kv" id="rev-logged"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Last 4 weeks</h2>
+      <div class="scroll-x"><table class="tbl" id="rev-rolling"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Everything logged this week</h2>
+      <ul class="list" id="rev-logs"></ul>
+    </section>
+  </section>
+
+  <!-- ------------------------------------------------------------ DATA -->
+  <section class="view" id="view-data" hidden>
+    <section class="card">
+      <h2>Your data</h2>
+      <p class="hint">Everything is stored in this browser only — no account, no server.
+        Clearing site data deletes it, so export now and then.</p>
+      <div class="row wrap">
+        <button type="button" id="export-btn">Export JSON</button>
+        <button type="button" class="ghost" id="import-btn">Import JSON</button>
+        <input type="file" id="import-file" accept="application/json,.json" hidden>
+      </div>
+      <p class="hint" id="storage-note"></p>
+    </section>
+    <section class="card">
+      <h2>Start over</h2>
+      <p class="hint">Deletes every week, task and log in this browser.</p>
+      <button type="button" class="danger ghost" id="reset-btn">Delete everything</button>
+    </section>
+    <section class="card">
+      <h2>About</h2>
+      <p class="hint">WeekLock keeps a light structure around the week: a few things that must
+        move, the slots that put you around other people, a short life-admin list, and a
+        parking lot for everything else. Logging is meant to take seconds. There are no
+        streaks, no scores and no notifications.</p>
+    </section>
+  </section>
+
+</main>
+
+<nav class="tabbar" id="tabbar">
+  <button type="button" data-view="log" class="active">Log</button>
+  <button type="button" data-view="plan">Plan</button>
+  <button type="button" data-view="review">Review</button>
+</nav>
+
+<div class="toast" id="toast" hidden>
+  <span id="toast-text"></span>
+  <button type="button" id="toast-undo">Undo</button>
+</div>
+
+<script src="core.js"></script>
+<script src="store.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
